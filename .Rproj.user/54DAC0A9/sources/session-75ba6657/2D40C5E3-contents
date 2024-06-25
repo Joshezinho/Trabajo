@@ -146,6 +146,7 @@ elsoc$sexo <- factor(elsoc$sexo,
 
 # 4.5.2 Nivel Educativo
 # Recodificación
+frq(elsoc$educ)
 elsoc$educ <- car::recode(elsoc$educ, "c(1,2)=0; c(3,4)=1; c(5,6,8)=2; c(7,9,10)=3")
 
 # Etiquetado

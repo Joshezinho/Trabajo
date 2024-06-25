@@ -14,7 +14,7 @@ rm(list=ls())       # borrar todos los objetos en el espacio de trabajo
 options(scipen=999) # valores sin notación científica
 
 #### 2. Cargar base de datos ####
-load(url("https://github.com/Joshezinho/Trabajos/raw/main/input/elsoc_reg.rdata")) #Cargar base de datos
+load(url("https://github.com/Joshezinho/Trabajo/raw/main/input/elsoc_reg.rdata")) #Cargar base de datos
 
 #### 3. Recodificar variables para la regresión ####
 names(elsoc_reg)
@@ -59,7 +59,8 @@ elsoc_reg$sexo <- recode(elsoc_reg$sexo, "1=1; 2=0") %>% as.numeric()
 
 ## 3.4 Nivel educativo
 ## Recodificación
-elsoc_reg$educ <- car::recode(elsoc_reg$educ, "c(1,2)=0; c(3,4)=1; c(5,6,8)=2; c(7,9,10)=3")
+frq(elsoc_reg$educ)
+elsoc_reg$educ <- recode(elsoc_reg$educ, "c(1,2)=0; c(3,4)=1; c(5,6,8)=2; c(7,9,10)=3") 
 
 # Etiquetado
 elsoc_reg$educ <- factor(elsoc_reg$educ,

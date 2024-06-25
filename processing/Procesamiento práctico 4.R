@@ -14,7 +14,9 @@ rm(list=ls())       # borrar todos los objetos en el espacio de trabajo
 options(scipen=999) # valores sin notación científica
 
 #### 2. Cargar base de datos ####
-load(url("https://github.com/Joshezinho/Trabajos/raw/main/input/elsoc_reg.rdata")) #Cargar base de datos
+load(url("https://github.com/Joshezinho/Trabajo/raw/main/input/elsoc_reg.rdata")) #Cargar base de datos
+
+elsoc_reg <-na.omit(elsoc_reg)
 
 #### 3. Recodificar variables para la regresión ####
 names(elsoc_reg)
@@ -59,7 +61,8 @@ elsoc_reg$sexo <- recode(elsoc_reg$sexo, "1=1; 2=0") %>% as.numeric()
 
 ## 3.4 Nivel educativo
 ## Recodificación
-elsoc_reg$educ <- car::recode(elsoc_reg$educ, "c(1,2)=0; c(3,4)=1; c(5,6,8)=2; c(7,9,10)=3")
+frq(elsoc_reg$educ)
+elsoc_reg$educ <- as.numeric(elsoc_reg$educ)
 
 # Etiquetado
 elsoc_reg$educ <- factor(elsoc_reg$educ,
@@ -73,7 +76,7 @@ elsoc_reg <- select(elsoc_reg, edad, sexo, educ, apoyo)
 #### 5. Regresión ####
 fit01<- lm(apoyo~sexo,data=elsoc_reg)
 fit02<- lm(apoyo~sexo+edad,data=elsoc_reg)
-fit03<- lm(apoyo~sexo+edad+educ,data=elsoc_reg)
+fit03<- lm(apoyo~sexo+edad+educ,data=elsoc_reg) %>% na.omit()
 
 labs01 <- c("Intercepto","Sexo (mujer)","Edad", "Educación Básica (Sin estudios)", "Educación Media", "Educación Superior")
 
@@ -96,3 +99,60 @@ elsoc_reg <-as.data.frame(elsoc_reg)
 
 ## 5.2 Guardar base de datos en una ruta particular
 save(elsoc_reg, file ="input/elsoc_reg.rdata")
+
+#### 6. Cálculo de valores predichos ####
+## 6.1 Visualizar modelo con sexo
+knitreg(list(fit01), 
+        custom.model.names = c("Modelo 1"),
+        custom.coef.names = c("Intercepto",
+                              "Sexo (mujer=0)"))
+
+## 6.2 Generar gráfico 
+ggeffects::ggpredict(fit01, terms = c("sexo")) %>%
+  ggplot(aes(x=x, y=predicted)) +
+  geom_bar(stat="identity", color="grey", fill="grey")+
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width=.1) +
+  labs(title="Sexo", x = "", y = "") +
+  theme_bw() +
+  scale_x_continuous(name = "",
+                     breaks = c(0,1),
+                     labels = c("Mujer", "Hombre"))+
+  scale_y_continuous(limits = c(0,16), 
+                     breaks = seq(0,16, by = 1))
+
+## 6.3 Visualizar modelo de quintil
+knitreg(list(fit03),
+        custom.model.names = c("Modelo 3"),
+        custom.coef.names = c("Intercepto",
+                              "Sexo (mujer=0)",
+                              "Edad",
+                              "Educación Básica",
+                              "Educación Media",
+                              "Educación Superior"))
+
+## 6.4 Generar gráfico
+ggeffects::ggpredict(fit03, terms = c("educ")) %>%
+ na.omit() %>%
+  ggplot(aes(x = x, y = predicted)) +
+  geom_bar(stat = "identity", color = "grey", fill = "grey") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = .1) +
+  labs(title = "Nivel Educacional", x = "", y = "") +
+  theme_bw() +
+  scale_x_discrete(name = "",
+                   labels = c("Educación Básica",
+                              "Educación Media",
+                              "Educación Superior")) +
+  scale_y_continuous(limits = c(0, 16), 
+                     breaks = seq(0, 16, by = 1))
+
+
+## 6.6 Generar gráfico de edad (variable cuanti)
+ggeffects::ggpredict(fit03, terms="edad") %>%
+  ggplot(mapping=aes(x = x, y=predicted)) +
+  labs(title="Edad", x = "", y = "")+
+  theme_bw() +
+  geom_smooth()+
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = .2, fill = "black") +
+  scale_x_continuous(breaks = seq(0,100, by = 20))+
+  scale_y_continuous(limits = c(0,16), 
+                     breaks = seq(0,16, by = 4))

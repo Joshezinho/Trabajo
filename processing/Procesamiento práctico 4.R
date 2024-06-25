@@ -139,7 +139,8 @@ ggeffects::ggpredict(fit03, terms = c("educ")) %>%
   labs(title = "Nivel Educacional", x = "", y = "") +
   theme_bw() +
   scale_x_discrete(name = "",
-                   labels = c("Educación Básica",
+                   labels = c("Sin Estudios",
+                              "Educación Básica",
                               "Educación Media",
                               "Educación Superior")) +
   scale_y_continuous(limits = c(0, 16), 
